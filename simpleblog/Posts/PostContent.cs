@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace DemoApp.Posts
+namespace simpleblog.Posts
 {
     public class PostContent
     {

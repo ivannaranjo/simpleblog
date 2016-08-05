@@ -3,33 +3,69 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using simpleblog.Posts;
 
 namespace simpleblog.Controllers
 {
-    public class HomeController : Controller
+     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private const string ProjectName = "my-demo-1331";
+
+        private readonly Lazy<PostStore> _postStore = new Lazy<PostStore>();
+
+        public async Task<ActionResult> Index()
         {
+            var posts = await _postStore.Value.ListPostsAsync();
+            return View(posts);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ShowPost(string id)
+        {
+            var post = await _postStore.Value.GetPostAsync(id);
+
+            ViewBag.Id = id;
+            return View(post);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Delete(string id)
+        {   
+            await _postStore.Value.DeletePostAsync(id);
+
+            return Redirect("/");
+        }
+
+        public ActionResult Create()
+        {   
             return View();
         }
 
-        public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
+        [HttpPost]
+        public async Task<ActionResult> Create(string title, string content)
+        {   
+            // TODO: Check for validity of post.                                                                                                                                                                                              
+            var newPost = new PostContent { Title = title, Content = content };
+            var newPostRef = await _postStore.Value.SavePostAsync(newPost);
 
-            return View();
+            // And go back to the main page.                                                                                                                                                                                                  
+            return Redirect($"/Home/ShowPost/{newPostRef.Id}");
         }
 
-        public IActionResult Contact()
+        [HttpGet]
+        public async Task<ActionResult> EditPost(string id)
         {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
+            var post = await _postStore.Value.GetPostAsync(id);
+            return View(post);
         }
 
-        public IActionResult Error()
+        [HttpPost]
+        public async Task<ActionResult> EditPost(string id, string title, string content)
         {
-            return View();
+            var newPost = new PostContent { Title = title, Content = content };
+            var newPostRef = await _postStore.Value.SavePostAsync(id, newPost);
+
+            return Redirect($"/Home/ShowPost/{newPostRef.Id}");
         }
     }
 }

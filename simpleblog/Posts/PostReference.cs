@@ -1,4 +1,4 @@
-﻿namespace DemoApp.Posts
+﻿namespace simpleblog.Posts
 {
     public class PostReference
     {

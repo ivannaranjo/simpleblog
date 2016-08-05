@@ -11,7 +11,7 @@ using Google.Apis.Services;
 using Google.Apis.Storage.v1;
 using Google.Apis.Auth.OAuth2;
 
-namespace DemoApp.Posts
+namespace simpleblog.Posts
 {
     public class PostStore
     {

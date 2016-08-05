@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using HeyRed.MarkdownSharp;
 
-namespace DemoApp.Posts
+namespace simpleblog.Posts
 {
     public static class PostRenderer
     {
