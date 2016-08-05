@@ -1,0 +1,16 @@
+﻿@using simpleblog.Posts
+@model simpleblog.Posts.PostContent
+
+@{
+    ViewBag.Title = Model.Title;
+}
+
+<h2>@Model.Title</h2>
+
+<div>
+    @Html.Raw(PostRenderer.RenderPost(Model))
+</div>
+<p>
+    @Html.ActionLink("Edit", "EditPost", new { id = ViewBag.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
