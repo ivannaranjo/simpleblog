@@ -1,30 +1,31 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using simpleblog.Posts;
 
 namespace simpleblog.Controllers
 {
-     public class HomeController : Controller
+    public class HomeController : Controller
     {
-        // TODO: Make this a setting.
-        private const string StorageBucket = "tryinggce.appspot.com";
-
         private readonly Lazy<PostStore> _postStore;
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IAppConfiguration _configuration;
 
-        public HomeController(ILoggerFactory loggerFactory)
+        public HomeController(ILoggerFactory loggerFactory, IAppConfiguration configuration)
         {
             _logger = loggerFactory.CreateLogger(nameof(HomeController));
             _loggerFactory = loggerFactory;
+            _configuration = configuration;
             _postStore = new Lazy<PostStore>(CreatePostStore);
         }
 
         private PostStore CreatePostStore()
         {
-            return new PostStore(StorageBucket, _loggerFactory);
+            return new PostStore(_configuration.StorageBucket, _loggerFactory);
         }
 
         public async Task<ActionResult> Index()
@@ -52,20 +53,20 @@ namespace simpleblog.Controllers
 
         [HttpGet]
         public async Task<ActionResult> Delete(string id)
-        {   
+        {
             await _postStore.Value.DeletePostAsync(id);
 
             return Redirect("/");
         }
 
         public ActionResult Create()
-        {   
+        {
             return View();
         }
 
         [HttpPost]
         public async Task<ActionResult> Create(string title, string content)
-        {   
+        {
             // TODO: Check for validity of post.                                                                                                                                                                                              
             var newPost = new PostContent { Title = title, Content = content };
             var newPostRef = await _postStore.Value.SavePostAsync(newPost);

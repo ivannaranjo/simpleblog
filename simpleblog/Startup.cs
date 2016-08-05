@@ -29,6 +29,13 @@ namespace simpleblog
         {
             // Add framework services.
             services.AddMvc();
+
+            // Registering the configuration as a singleton to be able to access it from the controllers.
+            services.AddSingleton<IConfiguration>(Configuration);
+
+            // Register the app specific configuration.
+            var appConfiguration = new AppConfiguration(Configuration); 
+            services.AddSingleton<IAppConfiguration>(appConfiguration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
