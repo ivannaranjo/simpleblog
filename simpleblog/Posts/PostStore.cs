@@ -15,10 +15,15 @@ namespace simpleblog.Posts
 {
     public class PostStore
     {
-        private const string StorageBucket = "storage-my-demo-1331";
         private const string TitleMetadataKey = "title";
 
         private readonly Lazy<Task<StorageService>> _storageClient = new Lazy<Task<StorageService>>(CreateStorageService);
+        private readonly string _storageBucket;
+
+        public PostStore(string storageBucket)
+        {
+            _storageBucket = storageBucket;
+        }
 
         private static async Task<StorageService> CreateStorageService()
         {
@@ -43,14 +48,14 @@ namespace simpleblog.Posts
 
             var destination = new Object
             {
-                Bucket = StorageBucket,
+                Bucket = _storageBucket,
                 Name = GetPostName(id),
                 Metadata = new Dictionary<string, string> { { TitleMetadataKey, post.Title } },
             };
 
             using (var content = new MemoryStream(buffer))
             {
-                await client.Objects.Insert(destination, StorageBucket, content, "").UploadAsync();
+                await client.Objects.Insert(destination, _storageBucket, content, "").UploadAsync();
             }
 
             return new PostReference(id, post.Title);
@@ -59,17 +64,24 @@ namespace simpleblog.Posts
         public async Task DeletePostAsync(string id)
         {
             var client = await _storageClient.Value;
-            await client.Objects.Delete(StorageBucket, GetPostName(id)).ExecuteAsync();
+            await client.Objects.Delete(_storageBucket, GetPostName(id)).ExecuteAsync();
         }
 
         public async Task<IList<PostReference>> ListPostsAsync()
         {
             var client = await _storageClient.Value;
-            var request = client.Objects.List(StorageBucket);
+            var request = client.Objects.List(_storageBucket);
             request.Prefix = "post/";
             var objs = await request.ExecuteAsync();
 
-            return objs.Items.Select(GetPostReference).Where(x => x.Title != null && x.Id != null).ToList();
+            if (objs.Items != null)
+            {
+                return objs.Items.Select(GetPostReference).Where(x => x.Title != null && x.Id != null)?.ToList();
+            }
+            else
+            {
+                return new List<PostReference>();
+            }
         }
 
         public async Task<PostContent> GetPostAsync(string id)
@@ -77,7 +89,7 @@ namespace simpleblog.Posts
             var client = await _storageClient.Value;
 
             string serialized;
-            using (var result = await client.Objects.Get(StorageBucket, GetPostName(id)).ExecuteAsStreamAsync())
+            using (var result = await client.Objects.Get(_storageBucket, GetPostName(id)).ExecuteAsStreamAsync())
             {
                 using (var reader = new StreamReader(result))
                 {

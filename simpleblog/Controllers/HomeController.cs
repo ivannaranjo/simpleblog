@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using simpleblog.Posts;
@@ -9,9 +7,15 @@ namespace simpleblog.Controllers
 {
      public class HomeController : Controller
     {
-        private const string ProjectName = "my-demo-1331";
+        // TODO: Make this a setting.
+        private const string StorageBucket = "tryinggce.appspot.com";
 
-        private readonly Lazy<PostStore> _postStore = new Lazy<PostStore>();
+        private readonly Lazy<PostStore> _postStore = new Lazy<PostStore>(CreatePostStore);
+
+        private static PostStore CreatePostStore()
+        {
+            return new PostStore(StorageBucket);
+        }
 
         public async Task<ActionResult> Index()
         {
