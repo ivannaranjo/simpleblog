@@ -1,0 +1,10 @@
+# Definition for the min blog engine.
+service: simpleblog
+vm: 1
+api_version: 1
+skip_files:
+  - ^.*$
+
+# Configuration of the engine.
+env_variables:
+  SIMPLEBLOG_STORAGE_BUCKET: tryinggce.appspot.com
