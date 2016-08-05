@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using simpleblog.Posts;
 
 namespace simpleblog.Controllers
@@ -10,11 +11,20 @@ namespace simpleblog.Controllers
         // TODO: Make this a setting.
         private const string StorageBucket = "tryinggce.appspot.com";
 
-        private readonly Lazy<PostStore> _postStore = new Lazy<PostStore>(CreatePostStore);
+        private readonly Lazy<PostStore> _postStore;
+        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
-        private static PostStore CreatePostStore()
+        public HomeController(ILoggerFactory loggerFactory)
         {
-            return new PostStore(StorageBucket);
+            _logger = loggerFactory.CreateLogger(nameof(HomeController));
+            _loggerFactory = loggerFactory;
+            _postStore = new Lazy<PostStore>(CreatePostStore);
+        }
+
+        private PostStore CreatePostStore()
+        {
+            return new PostStore(StorageBucket, _loggerFactory);
         }
 
         public async Task<ActionResult> Index()
@@ -27,6 +37,14 @@ namespace simpleblog.Controllers
         public async Task<ActionResult> ShowPost(string id)
         {
             var post = await _postStore.Value.GetPostAsync(id);
+            if (post == null)
+            {
+                _logger.LogError($"No post was read for {id}");
+            }
+            else
+            {
+                _logger.LogDebug($"Title: {post.Title}, Content: {post.Content}");
+            }
 
             ViewBag.Id = id;
             return View(post);
